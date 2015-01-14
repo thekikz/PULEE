@@ -1,0 +1,169 @@
+<!DOCTYPE html>
+
+<html lang="en">
+
+
+<head>
+  <script src="./js/jquery.min.js" type=text/javascript> </script>
+  <script src="./js/bootstrap.js"> </script>
+   <link rel="stylesheet" type="text/css" href="./css/bootstrap.css">
+
+ <style>
+
+   .navbar-custom {
+     color: #FFFFFF;
+     background-color: #395762;
+   }
+
+
+</style>
+</head>
+
+<body>
+
+
+  <div class="navbar navbar-default navbar-custom">
+    <h2><center>PULEE Test Page</center></h2>
+  </div>
+
+  <div class="container-fluid">
+    <div class="row">
+
+      <div class="col-md-3 ">
+
+          <h4><center>LED 1
+          <input id="LED1_on" class="btn btn-default" type="submit" value="ON" onclick = "sendMsg('D1_on')"/>
+          <input id="LED1_off" class="btn btn-default" type="submit" value="OFF" onclick = "sendMsg('D1_off')"/>
+        </center></h4>
+
+
+
+
+          <h4><center>LED 2
+            <input id="LED2_on" class="btn btn-default" type="submit" value="ON" onclick = "sendMsg('D2_on')"/>
+            <input id="LED2_off" class="btn btn-default" type="submit" value="OFF" onclick = "sendMsg('D2_off')"/>
+          </center></h4>
+
+          <h4><center>Relay
+            <input id="relay_on" class="btn btn-default" type="submit" value="ON" onclick = "sendMsg('relay_on')"/>
+            <input id="relay_off" class="btn btn-default" type="submit" value="OFF" onclick = "sendMsg('relay_off')"/>
+          </center></h4>
+
+          <h4><center>Buzzer
+            <input id="buzz" class="btn btn-default" type="submit" value="BEEP" onclick = "sendMsg('beep')"/>
+          </center></h4>
+
+      </div>
+
+      <div class = "col-md-6">
+        <img src="image/pulee.jpg" class="img-responsive" >
+      </div>
+
+      <div class = "col-md-3">
+        <p><h4 id="temp_val">TEMP : </h4></p>
+        <h4 id="date_val">DATE : </h4>
+        <h4 id="time_val">TIME : </h4>
+        <h4>LED1  :  <span id="led_stat1" class="label label-danger"> OFF </span></h4>
+        <h4>LED2  :  <span id="led_stat2" class="label label-danger"> OFF </span></h4>
+        <h4>Relay :  <span id="relay_stat" class="label label-warning"> OFF </span></h4>
+        <h4 id="sw_stat1">SW1  :</h4>
+        <h4 id="sw_stat2">SW2  :</h4>
+      </div>
+    </div>
+    <div class ="row">
+      <div class="col-md-2">
+      </div>
+      <div class="col-md-8">
+        <h2 id ="rfid_data">RFID :</h2>
+      </div>
+      <div class="col-md-2">
+
+      </div>
+    </div>
+
+
+<script type="text/javascript">
+
+      var temp_length = 7
+      var time_length = 27
+      var rfid_length = 29
+      var port = 8888
+      var addr = window.location.href;
+          addr = addr.split("/")[2];
+
+      //var wsocket = new WebSocket("ws://192.168.10.50:8888/ws");
+      var wsocket = new WebSocket("ws://"+addr+":"+port+"/ws");
+      console.log("ws://"+addr)
+
+      wsocket.open = function(){
+        console.log("connected");
+      };
+
+      wsocket.onmessage = function(message){
+        console.log("receiving: " + message.data);
+
+        var str_in = message.data;
+        var n=str_in.length;
+        console.log(n);
+
+          if(str_in[0]=='T'){
+            $("#temp_val").text("TEMP : "+message.data);
+          } else if(n==rfid_length){
+            $("#rfid_data").text("RFID :"+str_in.slice(10,str_in.length));
+          }
+            else if(n==time_length){
+            $("#date_val").text(str_in.slice(0,13));
+            $("#time_val").text(str_in.slice(14,29));
+          } else if(str_in == "D1_on"){
+            $("#led_stat1").text("ON");
+          }
+            else if(str_in == "D1_off")  {
+            $("#led_stat1").text("OFF");
+          }
+            else if(str_in == "D2_on") {
+            $("#led_stat2").text("ON");
+          }
+          else if(str_in == "D2_off") {
+            $("#led_stat2").text("OFF");
+          }
+          else if(str_in == "sw1_unpress") {
+            $("#sw_stat1").text("SW1  : " );
+          }
+          else if(str_in == "sw2_unpress") {
+            $("#sw_stat2").text("SW2  : ");
+          }
+          else if(str_in == "sw1_press") {
+            $("#sw_stat1").text("SW1  : Press" );
+          }
+          else if(str_in == "sw2_press") {
+            $("#sw_stat2").text("SW2  : Press");
+          }
+          else if(str_in == "relay_on") {
+            $("#relay_stat").text("ON");
+          }
+          else if(str_in == "relay_off") {
+            $("#relay_stat").text("OFF");
+          }
+
+
+
+      };
+
+      wsocket.onclose = function(){
+        console.log("disconnected");
+      };
+
+      sendMsg = function(message){
+        wsocket.send(message);
+
+      };
+
+      getIP  = function(){
+        var addr = window.location.href;
+        return addr.split("/")[2]
+      };
+</script>
+
+
+</body>
+</html>
